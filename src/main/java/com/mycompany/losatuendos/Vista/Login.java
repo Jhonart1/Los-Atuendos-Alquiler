@@ -3,6 +3,7 @@ package com.mycompany.losatuendos.Vista;
 
 import SistemaFacade.SistemaFacade;
 import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
 
 
 /**
@@ -178,17 +179,63 @@ public class Login extends javax.swing.JFrame {
             return;
         }
 
-        boolean loginOk = facade.login(correo, password);
+        LoadingDialog loading = new LoadingDialog(this, false);
+        loading.setTitulo("Iniciando sesión");
+        loading.setMensaje("Validando credenciales...");
+        loading.setVisible(true);
 
-        if (loginOk) {
-            Dashboard vistaDashboard = new Dashboard(facade);
-            vistaDashboard.pack();
-            vistaDashboard.setLocationRelativeTo(null);
-            vistaDashboard.setVisible(true);
-            this.dispose();
-        } else {
-            JOptionPane.showMessageDialog(this, "Correo o contraseña incorrectos. Intente de nuevo.", "Error de inicio de sesión", JOptionPane.ERROR_MESSAGE);
-        }
+        SwingWorker<Boolean, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Boolean doInBackground() {
+                return facade.login(correo, password);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    boolean loginOk = get();
+                    loading.dispose();
+
+                    if (loginOk) {
+                        LoadingDialog loading2 = new LoadingDialog(Login.this, false);
+                        loading2.setTitulo("Cargando sistema");
+                        loading2.setMensaje("Preparando el Dashboard...");
+                        loading2.setVisible(true);
+
+                        SwingWorker<Dashboard, Void> worker2 = new SwingWorker<>() {
+                            @Override
+                            protected Dashboard doInBackground() {
+                                // Construcción del Dashboard puede tardar por inicialización/UI
+                                return new Dashboard(facade);
+                            }
+
+                            @Override
+                            protected void done() {
+                                try {
+                                    Dashboard vistaDashboard = get();
+                                    vistaDashboard.pack();
+                                    vistaDashboard.setLocationRelativeTo(null);
+                                    vistaDashboard.setVisible(true);
+                                    loading2.dispose();
+                                    Login.this.dispose();
+                                } catch (Exception e) {
+                                    loading2.dispose();
+                                    JOptionPane.showMessageDialog(Login.this, "Error cargando el Dashboard.", "Error", JOptionPane.ERROR_MESSAGE);
+                                }
+                            }
+                        };
+                        worker2.execute();
+                    } else {
+                        JOptionPane.showMessageDialog(Login.this, "Correo o contraseña incorrectos. Intente de nuevo.", "Error de inicio de sesión", JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (Exception e) {
+                    loading.dispose();
+                    JOptionPane.showMessageDialog(Login.this, "Error al iniciar sesión. Intente de nuevo.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+
+        worker.execute();
     }//GEN-LAST:event_jButton_inicioActionPerformed
 
     private void Label_contrasena1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Label_contrasena1MouseClicked

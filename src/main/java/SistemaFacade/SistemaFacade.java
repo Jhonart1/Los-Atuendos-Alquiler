@@ -9,6 +9,10 @@ import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
+import iterators.IteratorGenerico;
+import iterators.ListaIterator;
+import iterators.ListaPrendasIterator;
+import iterators.PrendaIterator;
 import model.*;
 import services.PrendasService;
 import services.ClienteService;
@@ -22,6 +26,12 @@ import services.LavanderiaService;
  * la UI para evitar conocimiento de datos inncesarios por parte de la UI
  */
 public class SistemaFacade {
+
+    // Columnas completas del inventario (incluye atributos específicos según el tipo de prenda)
+    private static final String[] COLUMNAS_INVENTARIO = {
+        "REF", "COLOR", "MARCA", "TALLA", "V.ALQUILER", "TIPO",
+        "PEDRERÍA", "ALTURA", "PIEZAS", "TIPO TRAJE", "ADEREZO", "NOMBRE"
+    };
 
     //Atributo estático privado que guardará la única instancia del Singleton
     private static SistemaFacade instancia;
@@ -94,6 +104,18 @@ public class SistemaFacade {
         return prendasService.contar();
     }
 
+    public int conteoClientes() {
+        return clienteService.contar();
+    }
+
+    public int conteoAlquileres() {
+        return servicioAlquilerService.contar();
+    }
+
+    public int conteoLavanderia() {
+        return lavanderiaService.contar();
+    }
+
     public List<Prenda> obtenerPrendas() {
         List<Prenda> lista = prendasService.obtenerTodas();
         return lista;
@@ -116,7 +138,9 @@ public class SistemaFacade {
         };
         modelo.setColumnIdentifiers(todasLasColumnas);
 
-        for (Prenda prenda : listaPrendas) {
+        PrendaIterator iterator = new ListaPrendasIterator(listaPrendas);
+        while (iterator.hasNext()) {
+            Prenda prenda = iterator.next();
             // 2. El tamaño del array 'fila' debe ser igual al total de columnas (11 en este caso)
             Object[] fila = new Object[todasLasColumnas.length];
 
@@ -167,7 +191,9 @@ public class SistemaFacade {
         };
         modelo.setColumnIdentifiers(todasLasColumnas);
 
-        for (Prenda prenda : listaPrendas) {
+        PrendaIterator iterator = new ListaPrendasIterator(listaPrendas);
+        while (iterator.hasNext()) {
+            Prenda prenda = iterator.next();
             // 2. El tamaño del array 'fila' debe ser igual al total de columnas (11 en este caso)
             Object[] fila = new Object[todasLasColumnas.length];
 
@@ -208,14 +234,18 @@ public class SistemaFacade {
         model = (DefaultTableModel) tabla.getModel();
         //limpia datos del modelo pero sin columnas
         model.setRowCount(0);
+        // Asegura que la tabla tenga las columnas correctas (base + atributos de decoradores)
+        model.setColumnIdentifiers(COLUMNAS_INVENTARIO);
         //se obtienen los datos actuales
         List<Prenda> listaPrendas = prendasService.obtenerTodas();
         //Si es nulo anula el metodo
         if (listaPrendas == null || listaPrendas.isEmpty()) {
             return;
         }
-        // Llenar con los nuevos datos
-        for (Prenda prenda : listaPrendas) {
+        // Llenar con los nuevos datos (Patrón Iterator)
+        PrendaIterator iterator = new ListaPrendasIterator(listaPrendas);
+        while (iterator.hasNext()) {
+            Prenda prenda = iterator.next();
             // El tamaño debe coincidir con el número de columnas que definiste al inicio
             Object[] fila = new Object[12];
 
@@ -251,9 +281,13 @@ public class SistemaFacade {
         DefaultTableModel model = (DefaultTableModel) tabla.getModel();
         //limpia datos del modelo pero sin columnas
         model.setRowCount(0);
+        // Asegura que la tabla tenga las columnas correctas (base + atributos de decoradores)
+        model.setColumnIdentifiers(COLUMNAS_INVENTARIO);
         //se obtiene el objeto por la referencia
         resultado = prendasService.buscarTalla(filtro);
-        for (Prenda prenda : resultado) {
+        PrendaIterator iterator = new ListaPrendasIterator(resultado);
+        while (iterator.hasNext()) {
+            Prenda prenda = iterator.next();
             // El tamaño debe coincidir con el número de columnas que definiste al inicio
             Object[] fila = new Object[12];
 
@@ -310,12 +344,16 @@ public class SistemaFacade {
 
         //limpia datos del modelo pero sin columnas
         model.setRowCount(0);
+        // Asegura que la tabla tenga las columnas correctas (base + atributos de decoradores)
+        model.setColumnIdentifiers(COLUMNAS_INVENTARIO);
 
         //se obtiene las lista de objetos por los filtros
         resultado = prendasService.filtrar(ref, talla, tipo);
 
         //Se insertan datos en la Tabla.
-        for (Prenda prenda : resultado) {
+        PrendaIterator iterator = new ListaPrendasIterator(resultado);
+        while (iterator.hasNext()) {
+            Prenda prenda = iterator.next();
             // El tamaño debe coincidir con el número de columnas
             Object[] fila = new Object[12];
 
@@ -377,7 +415,9 @@ public class SistemaFacade {
             //solicitar alquileres del cliente por ID e insertarlos en la tabla
             if (servicioAlquileres != null) {
                 //si existen alquiles tomados por el cliente
-                for (ServicioAlquiler sa : servicioAlquileres) {
+                IteratorGenerico<ServicioAlquiler> iterator = new ListaIterator<>(servicioAlquileres);
+                while (iterator.hasNext()) {
+                    ServicioAlquiler sa = iterator.next();
                     // El tamaño debe coincidir con el número de columnas que definiste al inicio
                     Object[] fila = new Object[12];
 
@@ -452,7 +492,9 @@ public class SistemaFacade {
             return;
         }
         //Se insertan datos en la Tabla.
-        for (ServicioAlquiler sa : resultado) {
+        IteratorGenerico<ServicioAlquiler> iterator = new ListaIterator<>(resultado);
+        while (iterator.hasNext()) {
+            ServicioAlquiler sa = iterator.next();
             // El tamaño debe coincidir con el número de columnas
             Object[] fila = new Object[6];
 
@@ -482,7 +524,9 @@ public class SistemaFacade {
         }
         labelNumero.setText(servicioAlquiler.size() + "");
         // Llenar con los nuevos datos
-        for (ServicioAlquiler sa : servicioAlquiler) {
+        IteratorGenerico<ServicioAlquiler> iterator = new ListaIterator<>(servicioAlquiler);
+        while (iterator.hasNext()) {
+            ServicioAlquiler sa = iterator.next();
             // El tamaño debe coincidir con el número de columnas
             Object[] fila = new Object[6];
 
@@ -553,7 +597,9 @@ public class SistemaFacade {
             DefaultTableModel model = (DefaultTableModel) tabla.getModel();
             model.setRowCount(0);
 
-            for (Lavanderia la : lista) {
+            IteratorGenerico<Lavanderia> iterator = new ListaIterator<>(lista);
+            while (iterator.hasNext()) {
+                Lavanderia la = iterator.next();
                 // El tamaño debe coincidir con el número de columnas
                 Object[] fila = new Object[6];
 

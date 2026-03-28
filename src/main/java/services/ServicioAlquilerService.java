@@ -2,6 +2,8 @@ package services;
 
 import DAO.ServicioAlquilerDAO;
 import database.SupabaseConnection;
+import iterators.IteratorGenerico;
+import iterators.ListaIterator;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
@@ -63,7 +65,9 @@ public class ServicioAlquilerService {
 
             long idGenerado = idBase;
 
-            for (String ref : referencias) {
+            IteratorGenerico<String> iterator = new ListaIterator<>(referencias);
+            while (iterator.hasNext()) {
+                String ref = iterator.next();
 
                 ServicioAlquiler servicio = new ServicioAlquiler(
                         idGenerado++,
@@ -132,6 +136,17 @@ public class ServicioAlquilerService {
             System.out.println("Error general: " + e.getMessage());
         }
         return null;
+    }
+
+    public int contar() {
+        try (Connection conn = SupabaseConnection.getConnection()) {
+            return servicioAlquilerDAO.contar(conn);
+        } catch (SQLException e) {
+            System.out.println("Error SQL: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error general: " + e.getMessage());
+        }
+        return 0;
     }
 
     public List<String> buscarRefAlquiladas() {

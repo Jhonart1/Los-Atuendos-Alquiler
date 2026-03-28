@@ -19,6 +19,79 @@ Sistema de escritorio en Java para la gestión de inventario, clientes, alquiler
 
 ---
 
+## Etapa Transferencia — Cambios recientes 
+
+Esta sección documenta y justifica las modificaciones realizadas en la fase de **transferencia** (paso de teoría/diseño a implementación) para la entrega. Los cambios se enfocaron en:
+
+- **Aplicación del patrón de comportamiento `Iterator`** a recorridos de colecciones del dominio.
+- **Mejoras de UX/UI** para comunicar “cargando…” en operaciones lentas y ofrecer un **Home** inicial con KPIs y accesos rápidos.
+- **Correcciones de presentación** en tablas (columnas completas del inventario con atributos de decoradores).
+
+### 1) Cambios de diseño aplicados (Iterator)
+
+**Objetivo**: desacoplar el “cómo se recorre” una colección del “qué se hace” con los elementos (construir prendas decoradas, poblar tablas, registrar múltiples alquileres), estandarizando el recorrido en distintas funcionalidades.
+
+**Implementación**:
+
+- **Iteradores agregados**:
+  - `iterators.PrendaIterator` + `iterators.ListaPrendasIterator` (Iterator especializado para `Prenda`).
+  - `iterators.IteratorGenerico<T>` + `iterators.ListaIterator<T>` (Iterator genérico para listas del dominio).
+
+- **Dónde se aplicó**:
+  - **Inventario**:
+    - `services.PrendasService` recorre listas base (de `PrendaBase`) con `PrendaIterator` para construir la prenda completa (Decorator) usando `construirPrendaCompleta`.
+    - `SistemaFacade` recorre listas de `Prenda` con `PrendaIterator` al poblar tablas (`refrescarDatos`, `filtrarTablaPrendas`, `filtroCompletoPrendas`, etc.).
+  - **Clientes**:
+    - `SistemaFacade.mostrarClientePorId(...)` recorre los alquileres del cliente con `ListaIterator<ServicioAlquiler>` para poblar la tabla de historial/vigentes.
+  - **Alquileres**:
+    - `SistemaFacade.cargarAlquileres(...)` y `SistemaFacade.filtroCompletoAlquiler(...)` usan `ListaIterator<ServicioAlquiler>` para poblar tablas.
+    - `services.ServicioAlquilerService.insertarMultiple(...)` usa `ListaIterator<String>` para recorrer referencias.
+  - **Lavandería**:
+    - `SistemaFacade.listarLavanderia(...)` usa `ListaIterator<Lavanderia>` para poblar la tabla.
+  - **Servicios específicos de prendas**:
+    - `VestidoDamaService`, `TrajeCaballeroService`, `DisfrazService` usan `ListaIterator<T>` en listados.
+
+**Justificación**:
+- Reduce repetición de `for-each` “pegados” a listas concretas y permite un mecanismo de recorrido uniforme.
+- Facilita extender recorridos (por ejemplo, validaciones o medición de tiempos) sin reescribir bucles en múltiples módulos.
+- Encaja con el enunciado: el negocio trabaja con listados (prendas, alquileres por cliente, lavandería) que requieren recorridos constantes.
+
+
+### 2) Correcciones funcionales (tablas)
+
+- **Consulta de inventario**: se aseguró que el `JTable` utilice el modelo de columnas completo (incluyendo atributos específicos de `VestidoDama`, `TrajeCaballero` y `Disfraz`) antes de agregar filas.
+- **Motivo**: el `DefaultTableModel` conserva el número/nombres de columnas iniciales; si no se setean nuevamente, la tabla no muestra correctamente los datos de los decoradores.
+
+### 3) Mejoras UI/UX (comunicación de cargas + Home)
+
+**Problema detectado**: algunas operaciones demoran por consultas y construcción de datos (inventario, alquileres, lavandería). Sin feedback, el usuario percibe “congelamiento”.
+
+**Mejoras implementadas**:
+- **Loader moderno y consistente**:
+  - Se creó `LoadingDialog` (estilo blanco, borde suave, acento azul, título + mensaje).
+  - Se integró en **Login** (validación de credenciales y apertura de `Dashboard`).
+  - Se integró en cargas/refrescos de secciones lentas:
+    - refresco de inventario,
+    - carga/refresh de alquileres,
+    - carga de lavandería.
+  - En el inventario se añadió un “modo 3” para **actualización/refresco** con mensaje específico.
+
+- **Home/Inicio**:
+  - `Dashboard` inicia en un panel Home con **KPIs** y **accesos rápidos** a Inventario, Clientes, Alquileres y Lavandería, sin eliminar el menú lateral.
+  - Se añadió “carga bajo demanda” del inventario: se carga cuando el usuario entra a “Consulta inventario”.
+  - Se ajustó el layout para que tarjetas/botones sean más grandes y centrados (estilo dashboard).
+
+### 4) Impacto en patrones y diagramas
+
+- **Patrones**:
+  - Se **incorporó** `Iterator` como patrón de comportamiento usado transversalmente.
+  - Los patrones previos (**Facade, Singleton, DAO, Decorator, Factory Method, capas**) se mantienen; no se reemplazó ninguno.
+
+- **Diagramas**:
+  - Los diagramas conceptuales no requieren cambio estructural: `Iterator` se añade como mecanismo de recorrido sobre colecciones existentes (prendas, alquileres, lavandería).
+  - Motivo: el patrón afecta el **cómo se recorre** (implementación y diseño interno), no el modelo de dominio principal.
+---
+
 ## Descripción general
 
 **Los Atuendos** permite:
@@ -171,7 +244,25 @@ Así se modelan los tres tipos de prenda sin duplicar los atributos comunes y pe
 
 ---
 
-### 6. Capas Servicio + DAO (arquitectura en capas)
+### 6. Iterator 
+
+- **Tipo**: Patrón de comportamiento.
+- **Ubicación**:
+  - `iterators.PrendaIterator`, `iterators.ListaPrendasIterator` (recorridos de prendas).
+  - `iterators.IteratorGenerico<T>`, `iterators.ListaIterator<T>` (recorridos genéricos).
+  - Aplicación en `PrendasService`, `SistemaFacade`, `ServicioAlquilerService`, `VestidoDamaService`, `TrajeCaballeroService` y `DisfrazService`.
+- **Descripción**: Encapsula el recorrido sobre colecciones para desacoplar el código que procesa/transforma datos (por ejemplo, construir prendas decoradas y poblar tablas) de la estructura interna de la lista.
+
+**En el cambio reciente**:
+- Se estandarizó el recorrido de colecciones del dominio con iteradores:
+  - Prendas: inventario, filtrado, disponibles y refresco de tablas.
+  - Alquileres: listados, filtros y consulta por cliente (poblado de tablas).
+  - Lavandería: listado (poblado de tabla).
+  - Registro múltiple de alquileres: recorrido de referencias.
+
+---
+
+### 7. Capas Servicio + DAO (arquitectura en capas)
 
 - **Tipo**: Patrón de arquitectura (no es un patrón GoF con nombre propio; a veces se asocia a “layered architecture” o “transaction script” con separación de responsabilidades).
 
@@ -193,6 +284,7 @@ Así se modelan los tres tipos de prenda sin duplicar los atributos comunes y pe
 | DAO           | Persistencia| Todos los `*DAO` en el paquete `DAO`                |
 | Decorator     | Estructural | `Prenda` → `PrendaBase` → `PrendaDecorator` → VestidoDama, TrajeCaballero, Disfraz |
 | Factory Method| Creador     | `PrendasService.construirPrendaCompleta(...)`       |
+| Iterator      | Comportamiento | Recorridos de la lista base de prendas para construir prendas decoradas en `PrendasService` |
 | Capas         | Arquitectura| Servicios + DAOs + Modelos                          |
 
 ---
@@ -282,7 +374,7 @@ Se describen los cuatro flujos: **Inventario**, **Clientes**, **Alquileres** y *
 3. **PrendasService**: 
    - Para “disponibles”, primero obtiene referencias alquiladas: `servicioAlquilerService.buscarRefAlquiladas()`.
    - Llama a `PrendaDAO.listarTodas(conn)` o `listarTodasDisponibles(conn, refsExcluir)` o `filtrar(conn, ref, talla, tipo)` o `buscarTalla(conn, talla)`.
-   - Para cada `PrendaBase` devuelta, construye la prenda completa con `construirPrendaCompleta(conn, base)` (Factory Method) usando los servicios de vestido/traje/disfraz.
+   - Recorre la lista base con `PrendaIterator` (`iterators.PrendaIterator`) para construir la prenda completa con `construirPrendaCompleta(conn, base)` usando los servicios de vestido/traje/disfraz.
 4. **Facade**: Rellena el `DefaultTableModel` de la `JTable` con las prendas devueltas y actualiza la vista.
 
 ---

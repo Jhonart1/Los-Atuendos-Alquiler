@@ -71,4 +71,18 @@ public class ClienteDAO {
         return null;
     }
 
+    public int contar(Connection conn) {
+        String sql = "SELECT COUNT(*) FROM clientes";
+        try (PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error SQL: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error general: " + e.getMessage());
+        }
+        return 0;
+    }
+
 }

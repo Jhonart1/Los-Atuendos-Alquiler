@@ -3,6 +3,8 @@ package services;
 import DAO.DisfrazDAO;
 import DAO.PrendaDAO;
 import database.SupabaseConnection;
+import iterators.IteratorGenerico;
+import iterators.ListaIterator;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +52,9 @@ public class DisfrazService {
 
             List<Disfraz> datos = disfrazDAO.listarTodos(conn);
 
-            for (Disfraz d : datos) {
+            IteratorGenerico<Disfraz> iterator = new ListaIterator<>(datos);
+            while (iterator.hasNext()) {
+                Disfraz d = iterator.next();
 
                 Prenda base = prendaDAO.buscarPorRef(conn, d.getRef());
 

@@ -6,6 +6,10 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Frame;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,16 +45,162 @@ public class Dashboard extends javax.swing.JFrame {
     //Cap Datos Prendas
     private String tipoPrenda;
     private List<String> selectPrendas = new ArrayList();
+    private boolean inventarioCargado = false;
+    private JPanel panelHome;
 
     public Dashboard(SistemaFacade facade) {
         this.facade = facade;
         tipoPrenda = "vestido_dama";
         initComponents();
-        cargarDatosConBarra(jTableInventarioPrendas, 1);
+        initHomePanel();
+        mostrarHome();
         iniciarReloj();
         conteoPrendas();
         //Asigna el nombre del empleado logueado en la interfaz
         facade.setNombreEmpleado(jLabel_NombreEmpleado, jTextFieldIdEmpleado);
+    }
+
+    private void mostrarHome() {
+        CardLayout cl = (CardLayout) jPanel_contenido.getLayout();
+        cl.show(jPanel_contenido, "panelHome");
+    }
+
+    private void ensureInventarioCargado() {
+        if (inventarioCargado) {
+            return;
+        }
+        cargarDatosConBarra(jTableInventarioPrendas, 1);
+        inventarioCargado = true;
+    }
+
+    private JPanel crearTarjetaKpi(String titulo, String valor) {
+        JPanel card = new JPanel(new GridBagLayout());
+        card.setBackground(Color.WHITE);
+        card.setPreferredSize(new java.awt.Dimension(300, 140));
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(229, 231, 235), 1, true),
+                BorderFactory.createEmptyBorder(14, 14, 14, 14)
+        ));
+
+        JLabel labelTitulo = new JLabel(titulo);
+        labelTitulo.setForeground(new Color(107, 114, 128));
+        labelTitulo.setFont(new Font("Roboto", Font.PLAIN, 13));
+
+        JLabel labelValor = new JLabel(valor);
+        labelValor.setForeground(new Color(17, 24, 39));
+        labelValor.setFont(new Font("Roboto", Font.BOLD, 28));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(0, 0, 8, 0);
+        card.add(labelTitulo, gbc);
+
+        gbc.gridy = 1;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        card.add(labelValor, gbc);
+
+        return card;
+    }
+
+    private void initHomePanel() {
+        panelHome = new JPanel(new BorderLayout(0, 0));
+        panelHome.setBackground(Color.WHITE);
+        panelHome.setBorder(BorderFactory.createEmptyBorder(40, 60, 40, 60));
+
+        JPanel header = new JPanel(new GridBagLayout());
+        header.setBackground(Color.WHITE);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+
+        JLabel title = new JLabel("Inicio");
+        title.setFont(new Font("Roboto", Font.BOLD, 26));
+        title.setForeground(new Color(17, 24, 39));
+        header.add(title, gbc);
+
+        gbc.gridy = 1;
+        gbc.insets = new Insets(8, 0, 0, 0);
+        JLabel subtitle = new JLabel("Resumen del sistema y accesos rápidos");
+        subtitle.setFont(new Font("Roboto", Font.PLAIN, 13));
+        subtitle.setForeground(new Color(107, 114, 128));
+        header.add(subtitle, gbc);
+
+        panelHome.add(header, BorderLayout.NORTH);
+
+        JPanel center = new JPanel(new GridBagLayout());
+        center.setBackground(Color.WHITE);
+        GridBagConstraints c = new GridBagConstraints();
+        c.insets = new Insets(12, 0, 12, 0);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy = 0;
+
+        JPanel kpis = new JPanel(new java.awt.GridLayout(2, 2, 16, 16));
+        kpis.setBackground(Color.WHITE);
+
+        int prendas = facade.conteoPrendas();
+        int clientes = facade.conteoClientes();
+        int alquileres = facade.conteoAlquileres();
+        int lavanderia = facade.conteoLavanderia();
+
+        kpis.add(crearTarjetaKpi("Prendas registradas", String.valueOf(prendas)));
+        kpis.add(crearTarjetaKpi("Clientes registrados", String.valueOf(clientes)));
+        kpis.add(crearTarjetaKpi("Alquileres registrados", String.valueOf(alquileres)));
+        kpis.add(crearTarjetaKpi("Prendas en lavandería", String.valueOf(lavanderia)));
+
+        center.add(kpis, c);
+
+        c.gridy = 1;
+        c.insets = new Insets(20, 0, 0, 0);
+
+        JPanel quick = new JPanel(new FlowLayout(FlowLayout.CENTER, 16, 0));
+        quick.setBackground(Color.WHITE);
+
+        JButton btnInventario = new JButton("Ir a Inventario");
+        JButton btnClientes = new JButton("Ir a Clientes");
+        JButton btnAlquileres = new JButton("Ir a Alquileres");
+        JButton btnLavanderia = new JButton("Ir a Lavandería");
+
+        Color accent = new Color(0, 102, 255);
+        for (JButton b : new JButton[]{btnInventario, btnClientes, btnAlquileres, btnLavanderia}) {
+            b.setBackground(accent);
+            b.setForeground(Color.WHITE);
+            b.setFocusPainted(false);
+            b.setFont(new Font("Roboto", Font.BOLD, 16));
+            b.setPreferredSize(new java.awt.Dimension(220, 54));
+            b.setBorder(BorderFactory.createEmptyBorder(12, 18, 12, 18));
+        }
+
+        btnInventario.addActionListener(e -> {
+            ensureInventarioCargado();
+            CardLayout cl = (CardLayout) jPanel_contenido.getLayout();
+            cl.show(jPanel_contenido, "panelConsultaInv");
+        });
+        btnClientes.addActionListener(e -> {
+            CardLayout cl = (CardLayout) jPanel_contenido.getLayout();
+            cl.show(jPanel_contenido, "panelClientes");
+        });
+        btnAlquileres.addActionListener(e -> {
+            CardLayout cl = (CardLayout) jPanel_contenido.getLayout();
+            cl.show(jPanel_contenido, "panelAlquileres");
+        });
+        btnLavanderia.addActionListener(e -> {
+            CardLayout cl = (CardLayout) jPanel_contenido.getLayout();
+            cl.show(jPanel_contenido, "panelLavanderia");
+        });
+
+        quick.add(btnInventario);
+        quick.add(btnClientes);
+        quick.add(btnAlquileres);
+        quick.add(btnLavanderia);
+
+        center.add(quick, c);
+        panelHome.add(center, BorderLayout.CENTER);
+
+        jPanel_contenido.add(panelHome, "panelHome");
     }
 
     public void iniciar() {
@@ -162,7 +312,8 @@ public class Dashboard extends javax.swing.JFrame {
     }
 
     private void refrescarTabla() {
-        facade.refrescarDatos(jTableInventarioPrendas);
+        ensureInventarioCargado();
+        cargarDatosConBarra(jTableInventarioPrendas, 3);
     }
 
     private void filtrarTabla(String filtro) {
@@ -178,17 +329,47 @@ public class Dashboard extends javax.swing.JFrame {
 
     public class CargandoDialog extends JDialog {
 
+        private final JLabel labelTitulo;
+        private final JLabel labelMensaje;
+        private final JProgressBar progressBar;
+
         public CargandoDialog(Frame padre) {
             super(padre, "Espere por favor", true); // true = modal
 
             // Configuración de la barra de progreso
-            JProgressBar progressBar = new JProgressBar();
-            progressBar.setIndeterminate(true); // Movimiento infinito (estilo carga)
+            progressBar = new JProgressBar();
+            progressBar.setIndeterminate(true);
+            progressBar.setForeground(new Color(0, 102, 255));
+            progressBar.setBackground(new Color(229, 231, 235));
 
             // Panel y Texto
             JPanel panelCarga = new JPanel(new BorderLayout(10, 10));
-            panelCarga.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-            panelCarga.add(new JLabel("Cargando inventario de prendas..."), BorderLayout.NORTH);
+            panelCarga.setBackground(Color.WHITE);
+            panelCarga.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(229, 231, 235), 1, true),
+                    BorderFactory.createEmptyBorder(18, 18, 18, 18)
+            ));
+
+            labelTitulo = new JLabel("Cargando...");
+            labelTitulo.setFont(new Font("Roboto", Font.BOLD, 14));
+            labelTitulo.setForeground(new Color(17, 24, 39));
+
+            labelMensaje = new JLabel("Por favor espere");
+            labelMensaje.setFont(new Font("Roboto", Font.PLAIN, 12));
+            labelMensaje.setForeground(new Color(107, 114, 128));
+
+            JPanel top = new JPanel(new GridBagLayout());
+            top.setBackground(Color.WHITE);
+            GridBagConstraints t = new GridBagConstraints();
+            t.gridx = 0;
+            t.gridy = 0;
+            t.anchor = GridBagConstraints.WEST;
+            top.add(labelTitulo, t);
+            t.gridy = 1;
+            t.insets = new Insets(4, 0, 0, 0);
+            top.add(labelMensaje, t);
+
+            panelCarga.add(top, BorderLayout.NORTH);
             panelCarga.add(progressBar, BorderLayout.CENTER);
 
             this.add(panelCarga);
@@ -196,26 +377,59 @@ public class Dashboard extends javax.swing.JFrame {
             this.pack();
             this.setLocationRelativeTo(padre); // Centra respecto a la ventana principal
         }
+
+        public void setTitulo(String titulo) {
+            labelTitulo.setText(titulo);
+        }
+
+        public void setMensaje(String mensaje) {
+            labelMensaje.setText(mensaje);
+        }
     }
 
     private void cargarDatosConBarra(JTable tabla, int modo) {
         CargandoDialog cargando = new CargandoDialog(this);
+        if (modo == 1) {
+            cargando.setTitulo("Cargando inventario");
+            cargando.setMensaje("Consultando datos y construyendo prendas...");
+        } else if (modo == 2) {
+            cargando.setTitulo("Cargando prendas disponibles");
+            cargando.setMensaje("Aplicando filtros de disponibilidad...");
+        } else if (modo == 3) {
+            cargando.setTitulo("Actualizando inventario");
+            cargando.setMensaje("Refrescando datos...");
+        } else {
+            cargando.setTitulo("Cargando datos");
+            cargando.setMensaje("Por favor espere...");
+        }
 
         //Crear el trabajador en segundo plano
-        SwingWorker<DefaultTableModel, Void> worker = new SwingWorker<>() {
+        SwingWorker<DefaultTableModel, String> worker = new SwingWorker<>() {
             @Override
             protected DefaultTableModel doInBackground() throws Exception {
                 // Esto no congela la pantalla
                 if (modo == 1) { //Se carga modelo completo
+                    publish("Cargando alquileres...");
                     facade.cargarAlquileres(jTableConsultaAlquiler, jLabelAlquileresActivos);
+                    publish("Cargando inventario...");
                     return asignarModeloPrendas();
                 } else if (modo == 2) { //se carga solo el filtrado
                     System.out.println("Entra en modo 2");
                     return prendasDisponibles();
+                } else if (modo == 3) {
+                    publish("Refrescando inventario...");
+                    return asignarModeloPrendas();
                 } else {
                     return asignarModeloPrendas();
                 }
 
+            }
+
+            @Override
+            protected void process(List<String> chunks) {
+                if (chunks != null && !chunks.isEmpty()) {
+                    cargando.setMensaje(chunks.get(chunks.size() - 1));
+                }
             }
 
             @Override
@@ -402,13 +616,29 @@ public class Dashboard extends javax.swing.JFrame {
     }
 
     public void cargarLavanderia() {
-        JTable table = jTableListaLavanderia;
-        facade.listarLavanderia(table);
+        LoadingDialog loading = new LoadingDialog(this, false);
+        loading.setTitulo("Cargando lavandería");
+        loading.setMensaje("Consultando prendas en lista...");
+        loading.setVisible(true);
 
-        table.setRowSelectionAllowed(true);
-        table.setColumnSelectionAllowed(false);
-        table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() {
+                JTable table = jTableListaLavanderia;
+                facade.listarLavanderia(table);
+                return null;
+            }
 
+            @Override
+            protected void done() {
+                JTable table = jTableListaLavanderia;
+                table.setRowSelectionAllowed(true);
+                table.setColumnSelectionAllowed(false);
+                table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+                loading.dispose();
+            }
+        };
+        worker.execute();
     }
 
     public void enviarLavanderia(JTable table) {
@@ -3157,6 +3387,7 @@ public class Dashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonFiltrarInventarioActionPerformed
 
     private void jPanelConsultaInvMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanelConsultaInvMouseClicked
+        ensureInventarioCargado();
         CardLayout cl = (CardLayout) jPanel_contenido.getLayout();
         cl.show(jPanel_contenido, "panelConsultaInv");
     }//GEN-LAST:event_jPanelConsultaInvMouseClicked
@@ -3277,11 +3508,27 @@ public class Dashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_jPanel2MouseClicked
 
     private void jButton14ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton14ActionPerformed
-        facade.cargarAlquileres(jTableConsultaAlquiler, jLabelAlquileresActivos);
-        jDateChooserDesde.setDate(null);
-        jDateChooserHasta.setDate(null);
-        jTextFieldAlqFiltroIDcliente.setText("");
-        jTextFieldAlqFiltroIdServicio.setText("");
+        LoadingDialog loading = new LoadingDialog(this, false);
+        loading.setTitulo("Actualizando alquileres");
+        loading.setMensaje("Refrescando lista...");
+        loading.setVisible(true);
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() {
+                facade.cargarAlquileres(jTableConsultaAlquiler, jLabelAlquileresActivos);
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                jDateChooserDesde.setDate(null);
+                jDateChooserHasta.setDate(null);
+                jTextFieldAlqFiltroIDcliente.setText("");
+                jTextFieldAlqFiltroIdServicio.setText("");
+                loading.dispose();
+            }
+        };
+        worker.execute();
     }//GEN-LAST:event_jButton14ActionPerformed
 
     private void jButtonMenuAlquileres1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonMenuAlquileres1MouseClicked
@@ -3296,6 +3543,23 @@ public class Dashboard extends javax.swing.JFrame {
     private void jPanel4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel4MouseClicked
         CardLayout cl = (CardLayout) jPanel_contenido.getLayout();
         cl.show(jPanel_contenido, "panelConsultaAlquiler");
+        LoadingDialog loading = new LoadingDialog(this, false);
+        loading.setTitulo("Cargando alquileres");
+        loading.setMensaje("Consultando servicios de alquiler...");
+        loading.setVisible(true);
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() {
+                facade.cargarAlquileres(jTableConsultaAlquiler, jLabelAlquileresActivos);
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                loading.dispose();
+            }
+        };
+        worker.execute();
     }//GEN-LAST:event_jPanel4MouseClicked
 
     private void jPanel5MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel5MouseClicked

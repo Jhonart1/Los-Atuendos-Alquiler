@@ -3,6 +3,8 @@ package services;
 import DAO.PrendaDAO;
 import DAO.TrajeCaballeroDAO;
 import database.SupabaseConnection;
+import iterators.IteratorGenerico;
+import iterators.ListaIterator;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +54,9 @@ public class TrajeCaballeroService {
 
             List<TrajeCaballero> datos = trajeDAO.listarTodos(conn);
 
-            for (TrajeCaballero t : datos) {
+            IteratorGenerico<TrajeCaballero> iterator = new ListaIterator<>(datos);
+            while (iterator.hasNext()) {
+                TrajeCaballero t = iterator.next();
 
                 Prenda base = prendaDAO.buscarPorRef(conn, t.getRef());
 

@@ -65,5 +65,16 @@ public class LavanderiaService {
         }
         return null;
     }
+
+    public int contar() {
+        try (Connection conn = SupabaseConnection.getConnection()) {
+            return lavanderiaDAO.contar(conn);
+        } catch (SQLException e) {
+            System.out.println("Error SQL: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error general: " + e.getMessage());
+        }
+        return 0;
+    }
     
 }

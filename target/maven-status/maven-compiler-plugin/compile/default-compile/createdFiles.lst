@@ -3,7 +3,10 @@ com\mycompany\losatuendos\Vista\Dashboard$34.class
 com\mycompany\losatuendos\Vista\Dashboard$44.class
 com\mycompany\losatuendos\Vista\Dashboard$54.class
 com\mycompany\losatuendos\Vista\Dashboard$64.class
+com\mycompany\losatuendos\Vista\LoadingDialog.class
+com\mycompany\losatuendos\Vista\Login$4$1.class
 model\Empleado.class
+com\mycompany\losatuendos\Vista\Dashboard$67.class
 com\mycompany\losatuendos\Vista\Dashboard$4.class
 com\mycompany\losatuendos\Vista\RegistroEmpleados.class
 services\LavanderiaService.class
@@ -17,6 +20,7 @@ com\mycompany\losatuendos\Vista\Dashboard$1.class
 com\mycompany\losatuendos\Vista\Dashboard$17.class
 com\mycompany\losatuendos\Vista\Dashboard$57.class
 model\Lavanderia.class
+com\mycompany\losatuendos\Vista\Login$4.class
 com\mycompany\losatuendos\Vista\Dashboard$51.class
 com\mycompany\losatuendos\Vista\Dashboard$29.class
 DAO\TrajeCaballeroDAO.class
@@ -41,6 +45,7 @@ com\mycompany\losatuendos\Vista\Dashboard$53.class
 com\mycompany\losatuendos\Vista\Dashboard$47.class
 com\mycompany\losatuendos\Vista\Dashboard$3.class
 com\mycompany\losatuendos\Vista\Dashboard$19.class
+iterators\ListaIterator.class
 com\mycompany\losatuendos\Vista\Dashboard$24.class
 DAO\VestidoDamaDAO.class
 com\mycompany\losatuendos\LosAtuendos.class
@@ -50,11 +55,13 @@ com\mycompany\losatuendos\Vista\Dashboard$59.class
 com\mycompany\losatuendos\Vista\Dashboard$41.class
 model\Disfraz.class
 model\Persona.class
+iterators\IteratorGenerico.class
 com\mycompany\losatuendos\Vista\Dashboard$18.class
 com\mycompany\losatuendos\Vista\Dashboard$48.class
 com\mycompany\losatuendos\Vista\Dashboard$38.class
 com\mycompany\losatuendos\Vista\Dashboard$58.class
 com\mycompany\losatuendos\Vista\Dashboard$28.class
+com\mycompany\losatuendos\Vista\Dashboard$68.class
 com\mycompany\losatuendos\Vista\Login$3.class
 com\mycompany\losatuendos\Vista\RegistroEmpleados$2.class
 DAO\ServicioAlquilerDAO.class
@@ -70,9 +77,11 @@ com\mycompany\losatuendos\Vista\Login.class
 com\mycompany\losatuendos\Vista\Dashboard$43.class
 com\mycompany\losatuendos\Vista\Dashboard$63.class
 com\mycompany\losatuendos\Vista\Dashboard$23.class
+com\mycompany\losatuendos\Vista\Dashboard$66.class
 services\ClienteService.class
 com\mycompany\losatuendos\Vista\Dashboard$8.class
 DAO\PrendaDAO.class
+iterators\PrendaIterator.class
 DAO\ClienteDAO.class
 com\mycompany\losatuendos\Vista\Dashboard$16.class
 com\mycompany\losatuendos\Vista\Dashboard$26.class
@@ -101,6 +110,7 @@ model\ServicioAlquiler.class
 com\mycompany\losatuendos\Vista\Dashboard$56.class
 com\mycompany\losatuendos\Vista\Dashboard$21.class
 database\SupabaseConnection.class
+iterators\ListaPrendasIterator.class
 model\PrendaBase.class
 com\mycompany\losatuendos\Vista\Login$2.class
 com\mycompany\losatuendos\Vista\RegistroEmpleados$1.class

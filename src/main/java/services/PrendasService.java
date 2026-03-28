@@ -2,6 +2,8 @@ package services;
 
 import DAO.PrendaDAO;
 import database.SupabaseConnection;
+import iterators.ListaPrendasIterator;
+import iterators.PrendaIterator;
 import model.Prenda;
 import model.Disfraz;
 import model.TrajeCaballero;
@@ -41,10 +43,10 @@ public class PrendasService {
 
             List<Prenda> listaBase = prendaDAO.listarTodas(conn);
 
-            for (Prenda base : listaBase) {
-
+            PrendaIterator iterator = new ListaPrendasIterator(listaBase);
+            while (iterator.hasNext()) {
+                Prenda base = iterator.next();
                 Prenda completa = construirPrendaCompleta(conn, base);
-
                 if (completa != null) {
                     resultado.add(completa);
                 }
@@ -72,10 +74,10 @@ public class PrendasService {
             
             System.out.println("Listado de prendas en el servicio ya excluidas: " + listaBase.toString());
 
-            for (Prenda base : listaBase) {
-
+            PrendaIterator iterator = new ListaPrendasIterator(listaBase);
+            while (iterator.hasNext()) {
+                Prenda base = iterator.next();
                 Prenda completa = construirPrendaCompleta(conn, base);
-
                 if (completa != null) {
                     resultado.add(completa);
                 }
@@ -128,10 +130,10 @@ public class PrendasService {
 
             List<Prenda> listaBase = prendaDAO.buscarTalla(conn, talla);
 
-            for (Prenda base : listaBase) {
-
+            PrendaIterator iterator = new ListaPrendasIterator(listaBase);
+            while (iterator.hasNext()) {
+                Prenda base = iterator.next();
                 Prenda completa = construirPrendaCompleta(conn, base);
-
                 if (completa != null) {
                     resultado.add(completa);
                 }
@@ -158,10 +160,10 @@ public class PrendasService {
             List<Prenda> listaBase = prendaDAO.filtrar(conn, ref, talla, tipo);
 
             //Se llama a Decorator para decorar cada prenda base
-            for (Prenda base : listaBase) {
-
+            PrendaIterator iterator = new ListaPrendasIterator(listaBase);
+            while (iterator.hasNext()) {
+                Prenda base = iterator.next();
                 Prenda completa = construirPrendaCompleta(conn, base);
-
                 if (completa != null) {
                     resultado.add(completa);
                 }

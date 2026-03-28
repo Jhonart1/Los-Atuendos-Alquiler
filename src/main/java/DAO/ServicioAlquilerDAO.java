@@ -49,6 +49,20 @@ public class ServicioAlquilerDAO {
         }
     }
 
+    public int contar(Connection conn) {
+        String sql = "SELECT COUNT(*) FROM servicio_alquiler";
+        try (PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error SQL: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error general: " + e.getMessage());
+        }
+        return 0;
+    }
+
     public List<ServicioAlquiler> buscarPorIdCliente(Connection conn, long id) {
 
         List<ServicioAlquiler> lista = new ArrayList<>();
